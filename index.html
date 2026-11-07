@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Destino Monumental</title>
+<style>
+    body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #160e0b;
+    }
+
+    .escena {
+        position: relative;
+        width: min(100%, 400px);
+        aspect-ratio: 1 / 2;
+        overflow: hidden;
+    }
+
+    .escena img {
+        display: block;
+        width: 300%;
+    }
+
+    .despegar {
+        position: absolute;
+        left: 13%;
+        bottom: 3.5%;
+        width: 76%;
+        height: 9%;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: transparent;
+        cursor: pointer;
+    }
+    .escena.despegando img {
+    transform-origin: 16.67% 38%;
+    animation: despegue 1.2s ease-in-out;
+}
+
+@keyframes despegue {
+    from {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+
+    to {
+        transform: scale(1.2);
+        filter: brightness(2.5);
+    }
+}
+
+.escena.estadio img {
+    transform: translateX(-33.333%);
+    animation: llegada 0.6s ease-out;
+}
+
+@keyframes llegada {
+    from { filter: brightness(2.5); }
+    to   { filter: brightness(1); }
+}
+.patear {
+    position: absolute;
+    left: 34%;
+    top: 58%;
+    width: 32%;
+    height: 17%;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+}
+
+.resultado {
+    position: absolute;
+    top: 38%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    padding: 12px 20px;
+    border: 1px solid #ffe0a0;
+    border-radius: 8px;
+    background: #16120f;
+    color: #ffe0a0;
+    font: bold 28px Georgia, serif;
+    box-shadow: 0 0 24px #ffcb6c80;
+}
+
+.resultado:empty {
+    display: none;
+}
+.instruccion {
+    display: none;
+    position: absolute;
+    bottom: 4%;
+    left: 8%;
+    right: 8%;
+    margin: 0;
+    padding: 12px;
+    border: 1px solid #ffe0a0;
+    border-radius: 999px;
+    background: #16120f;
+    color: #ffe0a0;
+    text-align: center;
+    font: bold 16px Georgia, serif;
+    pointer-events: none;
+}
+
+.escena.estadio .patear:not(:disabled) + .instruccion {
+    display: block;
+}
+.escena.brindis img {
+    transform: translateX(-66.6667%);
+    animation: revelarBrindis 0.8s ease-out;
+}
+
+@keyframes revelarBrindis {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+.canjear {
+    display: none;
+    position: absolute;
+    left: 9%;
+    bottom: 3.5%;
+    width: 82%;
+    height: 9%;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: transparent;
+    cursor: pointer;
+}
+
+.escena.brindis .canjear {
+    display: block;
+}
+
+#vale {
+    max-width: min(75vw, 300px);
+    padding: 24px;
+    border: 1px solid #e6b871;
+    border-radius: 16px;
+    background: #25160f;
+    color: #ffe8bf;
+    text-align: center;
+}
+
+#vale::backdrop {
+    background: #140b08bd;
+}
+</style>
+</head>
+<body>
+    <main class="escena">
+        <img src="escenas.png" alt="Vista de la pista desde la ventanilla del avión">
+        <button class="despegar" type="button">Despegar</button>
+        
+        <button class="patear" type="button" aria-label="Patear la pelota" hidden></button>
+<p class="instruccion">⚽ Toca la pelota para patear</p>
+<p class="resultado" role="status"></p>
+<button class="canjear" type="button">Canjear mi cerveza</button>
+
+<dialog id="vale" aria-labelledby="titulo-vale">
+    <h2 id="titulo-vale">🍻 Vale por una cerveza</h2>
+    <p>La próxima va por mi cuenta. ¡Tú me dices cuándo!</p>
+    <form method="dialog">
+        <button type="submit">Cerrar</button>
+    </form>
+</dialog>
+       
+    </main>
+    <audio id="musica" src="musica.mp3" loop></audio>
+
+    <script>
+        const escena = document.querySelector(".escena");
+        const boton = document.querySelector(".despegar");
+        const imagen = escena.querySelector("img");
+
+        boton.addEventListener("click", () => {
+    escena.classList.add("despegando");
+
+    const musica = document.querySelector("#musica");
+musica.volume = 0.35;
+    musica.play().catch((error) => {
+        console.warn("No se pudo reproducir la música", error);
+    });
+});
+
+        imagen.addEventListener("animationend", (evento) => {
+            if (evento.animationName !== "despegue") return;
+
+            escena.classList.remove("despegando");
+            escena.classList.add("estadio");
+            imagen.alt = "Cancha del Monumental lista para el penal";
+            boton.hidden = true;
+            document.querySelector(".patear").hidden = false;
+        });
+        const patear = document.querySelector(".patear");
+        const resultado = document.querySelector(".resultado");
+
+       patear.addEventListener("click", () => {
+    resultado.textContent = "¡GOOOL!";
+    patear.disabled = true;
+
+    setTimeout(() => {
+        resultado.textContent = "";
+        patear.hidden = true;
+        escena.classList.remove("estadio");
+        escena.classList.add("brindis");
+        imagen.alt = "Gracias por darme una mano. La próxima cerveza va por mi cuenta.";
+    }, 1500);
+});
+const canjear = document.querySelector(".canjear");
+const vale = document.querySelector("#vale");
+
+canjear.addEventListener("click", () => {
+    vale.showModal();
+});
+    </script>
+</body>
+</html>
+</html>
